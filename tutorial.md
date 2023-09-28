@@ -533,9 +533,6 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 gcloud projects add-iam-policy-binding $PROJECT_ID \
   --member serviceAccount:genai-app@$PROJECT_ID.iam.gserviceaccount.com \
   --role roles/storage.objectUser
-gcloud run services add-iam-policy-binding genai-app \
-  --member="serviceAccount:genai-app@${PROJECT_ID}.iam.gserviceaccount.com" \
-  --role='roles/run.invoker'
 gcloud projects add-iam-policy-binding $PROJECT_ID \
   --member=serviceAccount:genai-app@$PROJECT_ID.iam.gserviceaccount.com \
   --role=roles/eventarc.eventReceiver
@@ -563,6 +560,9 @@ SERVICE_ACCOUNT="$(gsutil kms serviceaccount -p $PROJECT_ID)"
 gcloud projects add-iam-policy-binding $PROJECT_ID \
   --member="serviceAccount:${SERVICE_ACCOUNT}" \
   --role='roles/pubsub.publisher'
+gcloud run services add-iam-policy-binding genai-app \
+  --member="serviceAccount:genai-app@${PROJECT_ID}.iam.gserviceaccount.com" \
+  --role='roles/run.invoker'
 ```
 
 ### **2. Eventarc トリガーの作成**
@@ -574,7 +574,7 @@ gcloud eventarc triggers create genai-app \
   --location=asia-northeast1 \
   --event-filters="type=google.cloud.storage.object.v1.finalized" \
   --event-filters="bucket=$PROJECT_ID.appspot.com" \
-  --service-account=eventarc-to-genai-app@$PROJECT_ID.iam.gserviceaccount.com \
+  --service-account=genai-app@$PROJECT_ID.iam.gserviceaccount.com \
   --destination-run-path=/register_doc
 ```
 
