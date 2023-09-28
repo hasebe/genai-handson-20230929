@@ -26,21 +26,6 @@ database_password = "handson"
 app = Flask(__name__)
 
 
-# Helper function to retry failed API requests with exponential backoff.
-def retry_with_backoff(func, *args, retry_delay=5, backoff_factor=2, **kwargs):
-    max_attempts = 10
-    retries = 0
-    for i in range(max_attempts):
-        try:
-            return func(*args, **kwargs)
-        except Exception as e:
-            print(f"error: {e}")
-            retries += 1
-            wait = retry_delay * (backoff_factor**retries)
-            print(f"Retry after waiting for {wait} seconds...")
-            time.sleep(wait)
-
-
 async def insert_doc(file_id:int, text:str, metadata:str, embeddings_data:list):
     loop = asyncio.get_running_loop()
     async with Connector(loop=loop) as connector:
