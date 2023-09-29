@@ -1,6 +1,6 @@
-# **生成 AI を用いたハンズオン**
+# **2 時間で分かる Google Cloud 生成 AI 開発入門**
 
-## **生成 AI を用いたハンズオン**
+## **ハンズオン概要**
 
 本ハンズオンでは、[Cloud Run](https://cloud.google.com/run), [Firebase](https://firebase.google.com/) といった Google Cloud イチ押しのマネージドなサービスをフル活用し、クラウドネイティブなアプリケーション開発を体験します。そしてそのアプリケーションに生成 AI を使ったインテリジェントな機能を追加することで、実際のサービスと生成 AI の組み合わせの事例を学んで頂けます。
 
@@ -33,20 +33,10 @@
 
 ## **Google Cloud プロジェクトの設定、確認**
 
-### **1. 対象の Google Cloud プロジェクトを設定**
-
-ハンズオンを行う Google Cloud プロジェクトのプロジェクト ID を環境変数に設定し、以降の手順で利用できるようにします。 (右辺の `test-project` を手動で置き換えてコマンドを実行します)
+### **プロジェクトの課金が有効化されていることを確認する**
 
 ```bash
-export PROJECT_ID=test-project
-```
-
-`プロジェクト ID` は [ダッシュボード](https://console.cloud.google.com/home/dashboard) に進み、左上の **プロジェクト情報** から確認します。
-
-### **2. プロジェクトの課金が有効化されていることを確認する**
-
-```bash
-gcloud beta billing projects describe $PROJECT_ID | grep billingEnabled
+gcloud beta billing projects describe $GOOGLE_CLOUD_PROJECT | grep billingEnabled
 ```
 
 **Cloud Shell の承認** という確認メッセージが出た場合は **承認** をクリックします。
@@ -79,17 +69,7 @@ gcloud コマンドライン インターフェースは、Google Cloud でメ�
 
 **ヒント**: gcloud コマンドラインツールについての詳細は[こちら](https://cloud.google.com/sdk/gcloud?hl=ja)をご参照ください。
 
-### **2. gcloud から利用する Google Cloud のデフォルトプロジェクトを設定**
-
-gcloud コマンドでは操作の対象とするプロジェクトの設定が必要です。操作対象のプロジェクトを設定します。
-
-```bash
-gcloud config set project $PROJECT_ID
-```
-
-承認するかどうかを聞かれるメッセージがでた場合は、`承認` ボタンをクリックします。
-
-### **3. gcloud からの Cloud Run のデフォルト設定**
+### **2. gcloud からの Cloud Run のデフォルト設定**
 
 Cloud Run の利用するリージョン、プラットフォームのデフォルト値を設定します。
 
@@ -99,8 +79,6 @@ gcloud config set run/platform managed
 ```
 
 ここではリージョンを東京、プラットフォームをフルマネージドに設定しました。この設定を行うことで、gcloud コマンドから Cloud Run を操作するときに毎回指定する必要がなくなります。
-
-<walkthrough-footnote>CLI（gcloud）で利用するプロジェクトの指定、Cloud Run のデフォルト値の設定が完了しました。次にハンズオンで利用する機能（API）を有効化します。</walkthrough-footnote>
 
 ## **参考: Cloud Shell の接続が途切れてしまったときは?**
 
@@ -118,18 +96,9 @@ cd ~/genai-handson-20230929
 teachme tutorial.md
 ```
 
-### **3. プロジェクト ID を設定する**
-
-`test-project` を実際のプロジェクト ID に更新して実行してください。
+### **3. gcloud のデフォルト設定**
 
 ```bash
-export PROJECT_ID=test-project
-```
-
-### **4. gcloud のデフォルト設定**
-
-```bash
-gcloud config set project $PROJECT_ID
 gcloud config set run/region asia-northeast1
 gcloud config set run/platform managed
 ```
@@ -156,7 +125,7 @@ gcloud services enable \
 
 **GUI**: [API ライブラリ](https://console.cloud.google.com/apis/library)
 
-<walkthrough-footnote>必要な機能が使えるようになりました。次に実際に Cloud Run にアプリケーションをデプロイする方法を学びます。</walkthrough-footnote>
+<walkthrough-footnote>必要な機能が使えるようになりました。次に Firebase の設定方法を学びます。</walkthrough-footnote>
 
 ## **Firebase の設定**
 
@@ -184,15 +153,15 @@ Knowledge Drive では、ユーザー情報は [Firebase Authentication](https:/
 
 1. `新しいプロジェクトの準備ができました` と表示されたら `続行` をクリックします。
 
-### **3. Firebase アプリケーションの作成**
+### **2. Firebase アプリケーションの作成**
 
 **CLI** から実行します。
 
 ```bash
-firebase apps:create -P $PROJECT_ID WEB knowledge-drive
+firebase apps:create -P $GOOGLE_CLOUD_PROJECT WEB knowledge-drive
 ```
 
-### **4. Firebase 設定のアプリケーションへの埋め込み**
+### **3. Firebase 設定のアプリケーションへの埋め込み**
 
 ```bash
 ./scripts/firebase_config.sh ./src/knowledge-drive
@@ -202,12 +171,10 @@ firebase apps:create -P $PROJECT_ID WEB knowledge-drive
 
 **GUI** から Firebase Authentication を有効化します。
 
-スクリーンショットを見ながら進めたい方は、補足資料をご確認ください。
-
 1. 以下のコマンドで出力された URL にブラウザからアクセスします。
 
    ```bash
-   echo "https://console.firebase.google.com/project/$PROJECT_ID/overview?hl=ja"
+   echo "https://console.firebase.google.com/project/$GOOGLE_CLOUD_PROJECT/overview?hl=ja"
    ```
 
 1. `Authentication` カードをクリックします。
@@ -231,7 +198,7 @@ gcloud firestore databases create --location asia-northeast1
 ### **2. Firestore を操作するための CLI の初期化**
 
 ```bash
-firebase init firestore -P $PROJECT_ID
+firebase init firestore -P $GOOGLE_CLOUD_PROJECT
 ```
 
 2 つプロンプトが出ますが両方とも `Enter` を押しデフォルト設定を採用します。
@@ -303,7 +270,7 @@ EOF
 ### **5. 更新したセキュリティルール、インデックスをデプロイ**
 
 ```bash
-firebase deploy --only firestore -P $PROJECT_ID
+firebase deploy --only firestore -P $GOOGLE_CLOUD_PROJECT
 ```
 
 ## **Cloud Storage for Firebase、セキュリティルールの設定**
@@ -315,7 +282,7 @@ firebase deploy --only firestore -P $PROJECT_ID
 1. 以下のコマンドで出力された URL にブラウザからアクセスします。
 
    ```bash
-   echo "https://console.firebase.google.com/project/$PROJECT_ID/overview?hl=ja"
+   echo "https://console.firebase.google.com/project/$GOOGLE_CLOUD_PROJECT/overview?hl=ja"
    ```
 
 1. 左メニュー上部のプロジェクトの概要右の `歯車マーク`、`プロジェクトの設定` の順にクリックします。
@@ -328,7 +295,7 @@ firebase deploy --only firestore -P $PROJECT_ID
 ファイルのストレージとして利用する Cloud Storage の CLI を設定します。
 
 ```bash
-firebase init storage -P $PROJECT_ID
+firebase init storage -P $GOOGLE_CLOUD_PROJECT
 ```
 
 1 つプロンプトが出ますが `Enter` を押しデフォルト設定を採用します。
@@ -354,7 +321,7 @@ EOF
 ### **4. 更新したセキュリティルールをデプロイ**
 
 ```bash
-firebase deploy --only storage -P $PROJECT_ID
+firebase deploy --only storage -P $GOOGLE_CLOUD_PROJECT
 ```
 
 ## **Knowledge Drive デプロイの事前設定**
@@ -385,14 +352,14 @@ gcloud iam service-accounts create knowledge-drive
 Knowledge Drive は認証情報の操作、Firestore の読み書き権限が必要です。先程作成したサービスアカウントに権限を付与します。
 
 ```bash
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member serviceAccount:knowledge-drive@$PROJECT_ID.iam.gserviceaccount.com \
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
+  --member serviceAccount:knowledge-drive@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
   --role 'roles/firebase.sdkAdminServiceAgent'
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member serviceAccount:knowledge-drive@$PROJECT_ID.iam.gserviceaccount.com \
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
+  --member serviceAccount:knowledge-drive@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
   --role 'roles/firebaseauth.admin'
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member serviceAccount:knowledge-drive@$PROJECT_ID.iam.gserviceaccount.com \
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
+  --member serviceAccount:knowledge-drive@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
   --role 'roles/iam.serviceAccountTokenCreator'
 ```
 
@@ -402,11 +369,11 @@ Cloud Build でコンテナイメージを作成、作成したイメージを C
 
 ```bash
 gcloud builds submit ./src/knowledge-drive \
-  --tag asia-northeast1-docker.pkg.dev/$PROJECT_ID/drive-repo/knowledge-drive \
+  --tag asia-northeast1-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/drive-repo/knowledge-drive \
   --machine-type e2-highcpu-8 && \
 gcloud run deploy knowledge-drive \
-  --image asia-northeast1-docker.pkg.dev/$PROJECT_ID/drive-repo/knowledge-drive \
-  --service-account knowledge-drive@$PROJECT_ID.iam.gserviceaccount.com \
+  --image asia-northeast1-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/drive-repo/knowledge-drive \
+  --service-account knowledge-drive@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
   --allow-unauthenticated
 ```
 
@@ -429,11 +396,11 @@ gcloud run deploy knowledge-drive \
 - `新規` ボタンから新しいフォルダの作成、ローカルにあるファイルのアップロードが可能です。
 - 右上の `アバター` マークをクリックするとログアウトが可能です。
 - 上部の検索バーから、ファイル名、フォルダ名の検索が可能です。完全一致検索となっていることに注意してください。
-- フォルダは階層化、ファイルはアップロード後クリックすると、別のタブで表示することができます。
+- フォルダは階層化でき、ファイルはアップロード後クリックすると、別のタブで表示することができます。
 
 ### **4. 別アカウントでの動作を確認**
 
-一度ログアウトし、別のアカウントを作成してみましょう。
+一度ログアウトし、別のアカウントを作成してサインインしてみましょう。
 
 先に作成したアカウントとはファイル、フォルダが分離されていることがわかります。
 
@@ -524,17 +491,17 @@ gcloud iam service-accounts create genai-app
 生成 AI 処理アプリケーションは Cloud SQL、Vertex AI などのサービスへのアクセス権限が必要です。
 
 ```bash
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member serviceAccount:genai-app@$PROJECT_ID.iam.gserviceaccount.com \
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
+  --member serviceAccount:genai-app@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
   --role roles/cloudsql.client
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member serviceAccount:genai-app@$PROJECT_ID.iam.gserviceaccount.com \
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
+  --member serviceAccount:genai-app@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
   --role roles/aiplatform.user
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member serviceAccount:genai-app@$PROJECT_ID.iam.gserviceaccount.com \
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
+  --member serviceAccount:genai-app@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
   --role roles/storage.objectUser
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member=serviceAccount:genai-app@$PROJECT_ID.iam.gserviceaccount.com \
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
+  --member=serviceAccount:genai-app@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
   --role=roles/eventarc.eventReceiver
 ```
 
@@ -542,11 +509,11 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 
 ```bash
 gcloud builds submit ./src/genai-app \
-  --tag asia-northeast1-docker.pkg.dev/$PROJECT_ID/drive-repo/genai-app
+  --tag asia-northeast1-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/drive-repo/genai-app
 gcloud run deploy genai-app \
-  --image asia-northeast1-docker.pkg.dev/$PROJECT_ID/drive-repo/genai-app \
-  --service-account genai-app@$PROJECT_ID.iam.gserviceaccount.com \
-  --no-allow-unauthenticated --set-env-vars "PJID=$PROJECT_ID"
+  --image asia-northeast1-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/drive-repo/genai-app \
+  --service-account genai-app@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
+  --no-allow-unauthenticated --set-env-vars "PJID=$GOOGLE_CLOUD_PROJECT"
 ```
 
 ## **Eventarc の設定**
@@ -556,12 +523,12 @@ gcloud run deploy genai-app \
 ### **1. 前準備**
 
 ```bash
-SERVICE_ACCOUNT="$(gsutil kms serviceaccount -p $PROJECT_ID)"
-gcloud projects add-iam-policy-binding $PROJECT_ID \
+SERVICE_ACCOUNT="$(gsutil kms serviceaccount -p $GOOGLE_CLOUD_PROJECT)"
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
   --member="serviceAccount:${SERVICE_ACCOUNT}" \
   --role='roles/pubsub.publisher'
 gcloud run services add-iam-policy-binding genai-app \
-  --member="serviceAccount:genai-app@${PROJECT_ID}.iam.gserviceaccount.com" \
+  --member="serviceAccount:genai-app@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" \
   --role='roles/run.invoker'
 ```
 
@@ -573,8 +540,8 @@ gcloud eventarc triggers create genai-app \
   --destination-run-region=asia-northeast1 \
   --location=asia-northeast1 \
   --event-filters="type=google.cloud.storage.object.v1.finalized" \
-  --event-filters="bucket=$PROJECT_ID.appspot.com" \
-  --service-account=genai-app@$PROJECT_ID.iam.gserviceaccount.com \
+  --event-filters="bucket=$GOOGLE_CLOUD_PROJECT.appspot.com" \
+  --service-account=genai-app@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
   --destination-run-path=/register_doc
 ```
 
@@ -598,7 +565,7 @@ gcloud pubsub subscriptions update \
 
 ```bash
 gcloud run services add-iam-policy-binding genai-app \
-  --member=serviceAccount:knowledge-drive@$PROJECT_ID.iam.gserviceaccount.com \
+  --member=serviceAccount:knowledge-drive@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
   --role=roles/run.invoker
 ```
 
@@ -610,16 +577,16 @@ GenAI App と連携するために、Knowledge Drive を更新します。
 git switch genai-app-integration
 ```
 
-### **2. 連携機能のデプロイ**
+### **3. 連携機能のデプロイ**
 
 ```bash
 GENAI_APP_URL=$(gcloud run services describe genai-app --region asia-northeast1 --format json | jq -r '.status.url')
 gcloud builds submit ./src/knowledge-drive \
-  --tag asia-northeast1-docker.pkg.dev/$PROJECT_ID/drive-repo/knowledge-drive \
+  --tag asia-northeast1-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/drive-repo/knowledge-drive \
   --machine-type e2-highcpu-8 && \
 gcloud run deploy knowledge-drive \
-  --image asia-northeast1-docker.pkg.dev/$PROJECT_ID/drive-repo/knowledge-drive \
-  --service-account knowledge-drive@$PROJECT_ID.iam.gserviceaccount.com \
+  --image asia-northeast1-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/drive-repo/knowledge-drive \
+  --service-account knowledge-drive@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
   --allow-unauthenticated --set-env-vars "SEARCH_HOST=$GENAI_APP_URL"
 ```
 
@@ -634,7 +601,7 @@ GenAI App は PDF ファイルを読み取り、処理します。
 - [Cloud Run](https://storage.googleapis.com/genai-handson-20230929/CloudRun.pdf)
 - [Cloud SQL](https://storage.googleapis.com/genai-handson-20230929/CloudSQL.pdf)
 - [Cloud Storage for Firebase](https://storage.googleapis.com/genai-handson-20230929/CloudStorageforFirebase.pdf)
-- [Firebase Authentication](https://storage.googleapis.com/genai-handson-20230929/CloudStorageforFirebase.pdf)
+- [Firebase Authentication](https://storage.googleapis.com/genai-handson-20230929/FirebaseAuthentication.pdf)
 - [Firestore](https://storage.googleapis.com/genai-handson-20230929/Firestore.pdf)
 - [Palm API と LangChain の連携](https://storage.googleapis.com/genai-handson-20230929/PalmAPIAndLangChain.pdf)
 
@@ -658,24 +625,20 @@ GenAI App への質問に切り替え、先程アップロードしたファイ�
 
 デモで使った資材が不要な方は、次の手順でクリーンアップを行って下さい。
 
+注: 本手順でプロジェクトが削除されます。削除に問題がある方は実施しないでください。
+
 ## **クリーンアップ（プロジェクトを削除）**
 
 ハンズオン用に利用したプロジェクトを削除し、コストがかからないようにします。
 
-### **1. Google Cloud のデフォルトプロジェクト設定の削除**
+### **1. プロジェクトの削除**
 
 ```bash
-gcloud config unset project
+gcloud projects delete $GOOGLE_CLOUD_PROJECT
 ```
 
-### **2. プロジェクトの削除**
+### **2. ハンズオン資材の削除**
 
 ```bash
-gcloud projects delete $PROJECT_ID
-```
-
-### **3. ハンズオン資材の削除**
-
-```bash
-cd $HOME && rm -rf gcp-getting-started-cloudrun gopath
+cd $HOME && rm -rf genai-handson-20230929
 ```
