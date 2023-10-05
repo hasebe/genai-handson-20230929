@@ -450,16 +450,17 @@ gcloud sql connect pg15-pgvector-demo --user=docs-admin --database=docs
 ### **4. ベクトル検索用拡張機能の追加**
 
 ```bash
-CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS
+    vector;
 ```
 
 ### **5. Embedding データ用テーブルの作成**
 
 ```bash
-CREATE TABLE docs_embeddings( \
-  product_id VARCHAR(1024) NOT NULL, \
-  content TEXT, \
-  metadata TEXT, \
+CREATE TABLE docs_embeddings(
+  product_id VARCHAR(1024) NOT NULL,
+  content TEXT,
+  metadata TEXT,
   embedding vector(768));
 ```
 
