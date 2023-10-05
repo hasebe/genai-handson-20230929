@@ -130,7 +130,7 @@ def store_description(user_id:str, file_id:str, description:str):
     print("Adding description to {}/{}".format(collection, file_id))
 
     doc_ref = db.collection(collection).document(file_id)
-    # Wait for the doctument to be created on firestore.
+    # Wait for the document to be created on firestore.
     for _ in range(10):
       doc = doc_ref.get()
       if doc.exists:
