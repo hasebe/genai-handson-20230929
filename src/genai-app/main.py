@@ -2,8 +2,10 @@ import os, time, json
 import asyncio
 import asyncpg
 import numpy as np
+import firebase_admin
 from google.cloud import storage
 from google.cloud.sql.connector import Connector
+from firebase_admin import firestore_async
 from cloudevents.http import from_http
 from flask import Flask, request, jsonify
 from langchain.document_loaders import PyPDFLoader
@@ -11,6 +13,8 @@ from langchain.embeddings import VertexAIEmbeddings
 from langchain.llms import VertexAI
 from langchain import PromptTemplate
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.chains import AnalyzeDocumentChain
+from langchain.chains.question_answering import load_qa_chain
 from pgvector.asyncpg import register_vector
 
 
@@ -23,6 +27,7 @@ database_user = "docs-admin"
 database_password = "handson"
 
 
+firebase_app = firebase_admin.initialize_app()
 app = Flask(__name__)
 
 
@@ -137,9 +142,34 @@ async def register_doc():
     
     # download pdf form gcs
     download_from_gcs(bucket_name, name)
+    uid, name = name.split("/")[-2:]
     
-    # read pdf
-    name = name.split("/")[-1]
+
+    # Generate summary of the pdf
+    loader = PyPDFLoader(name)
+    document = loader.load()
+    llm = VertexAI(
+        model_name="text-bison@001",
+        max_output_tokens=256,
+        temperature=0.1,
+        top_p=0.8,
+        top_k=40,
+        verbose=True,
+    )
+
+    qa_chain = load_qa_chain(llm, chain_type="map_reduce")
+    qa_document_chain = AnalyzeDocumentChain(combine_docs_chain=qa_chain)
+    summary = qa_document_chain.run(
+      input_document=document[0].page_content[:5000],
+      question="何についての文書ですか？日本語で2文にまとめて答えてください。")
+    print(summary)
+
+    db = firestore_async.client()
+    collection = "users/{}/items".format(uid)
+    doc_ref = db.collection(collection).document(name)
+    await doc_ref.update({"description": summary})
+
+    # Generate embeddings
     loader = PyPDFLoader(name)
     text_splitter = RecursiveCharacterTextSplitter(
         separators=["\n", "。"],
