@@ -5,7 +5,7 @@ import numpy as np
 import firebase_admin
 from google.cloud import storage
 from google.cloud.sql.connector import Connector
-from firebase_admin import firestore_async
+from firebase_admin import firestore
 from cloudevents.http import from_http
 from flask import Flask, request, jsonify
 from langchain.document_loaders import PyPDFLoader
@@ -136,38 +136,18 @@ async def register_doc():
     data = event.data
     bucket_name = data["bucket"]
     name = data["name"]
+    _, ext = os.path.splitext(name)
     
-    if not ".pdf" in name:
+    print("Uploaded file: {}".format(name))
+    if not ext == ".pdf":
         return ("This is not pdf file", 200)
     
+
     # download pdf form gcs
     download_from_gcs(bucket_name, name)
-    uid, name = name.split("/")[-2:]
+    user_id, name = name.split("/")[-2:]
+    file_id, _ = os.path.splitext(name)
     
-
-    # Generate summary of the pdf
-    loader = PyPDFLoader(name)
-    document = loader.load()
-    llm = VertexAI(
-        model_name="text-bison@001",
-        max_output_tokens=256,
-        temperature=0.1,
-        top_p=0.8,
-        top_k=40,
-        verbose=True,
-    )
-
-    qa_chain = load_qa_chain(llm, chain_type="map_reduce")
-    qa_document_chain = AnalyzeDocumentChain(combine_docs_chain=qa_chain)
-    summary = qa_document_chain.run(
-      input_document=document[0].page_content[:5000],
-      question="何についての文書ですか？日本語で2文にまとめて答えてください。")
-    print(summary)
-
-    db = firestore_async.client()
-    collection = "users/{}/items".format(uid)
-    doc_ref = db.collection(collection).document(name)
-    await doc_ref.update({"description": summary})
 
     # Generate embeddings
     loader = PyPDFLoader(name)
@@ -187,6 +167,39 @@ async def register_doc():
         cc = page.page_content.encode("utf-8").replace(b'\x00', b'').decode("utf-8")
         await insert_doc(name, cc, page.metadata, embeddings_data)
         
+
+    # Generate summary of the pdf
+    loader = PyPDFLoader(name)
+    document = loader.load()
+    llm = VertexAI(
+        model_name="text-bison@001",
+        max_output_tokens=256,
+        temperature=0.1,
+        top_p=0.8,
+        top_k=40,
+        verbose=True,
+    )
+
+    qa_chain = load_qa_chain(llm, chain_type="map_reduce")
+    qa_document_chain = AnalyzeDocumentChain(combine_docs_chain=qa_chain)
+    summary = qa_document_chain.run(
+      input_document=document[0].page_content[:5000],
+      question="何についての文書ですか？日本語で2文にまとめて答えてください。")
+
+    db = firestore.client()
+    collection = "users/{}/items".format(user_id)
+    print("Adding description to {}/{}".format(collection, file_id))
+
+    doc_ref = db.collection(collection).document(file_id)
+    # Wait for the doctument to be created on firestore.
+    for _ in range(10):
+      doc = doc_ref.get()
+      if doc.exists:
+        doc_ref.update({"description": summary})
+        print("Description: {}".format(summary))
+        break
+      time.sleep(3)
+
     return ("Registered a doc in Cloud SQL", 200)
 
 
