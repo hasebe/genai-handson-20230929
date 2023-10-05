@@ -120,6 +120,7 @@ gcloud services enable \
   eventarc.googleapis.com \
   sqladmin.googleapis.com \
   aiplatform.googleapis.com \
+  translate.googleapis.com \
   firebasestorage.googleapis.com
 ```
 
