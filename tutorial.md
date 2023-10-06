@@ -120,6 +120,7 @@ gcloud services enable \
   eventarc.googleapis.com \
   sqladmin.googleapis.com \
   aiplatform.googleapis.com \
+  translate.googleapis.com \
   firebasestorage.googleapis.com
 ```
 
@@ -450,16 +451,17 @@ gcloud sql connect pg15-pgvector-demo --user=docs-admin --database=docs
 ### **4. ベクトル検索用拡張機能の追加**
 
 ```bash
-CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS
+    vector;
 ```
 
 ### **5. Embedding データ用テーブルの作成**
 
 ```bash
-CREATE TABLE docs_embeddings( \
-  product_id VARCHAR(1024) NOT NULL, \
-  content TEXT, \
-  metadata TEXT, \
+CREATE TABLE docs_embeddings(
+  product_id VARCHAR(1024) NOT NULL,
+  content TEXT,
+  metadata TEXT,
   embedding vector(768));
 ```
 
@@ -503,6 +505,9 @@ gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
 gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
   --member=serviceAccount:genai-app@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
   --role=roles/eventarc.eventReceiver
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
+  --member serviceAccount:genai-app@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
+  --role roles/datastore.user
 ```
 
 ### **3 GenAI App のビルド、デプロイ**
