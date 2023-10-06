@@ -226,12 +226,14 @@ async def register_doc():
     
     # Create embeddings and inser data to Cloud SQL
     embeddings = VertexAIEmbeddings(model_name="textembedding-gecko-multilingual@latest")
-    for page in pages:
+    for c, page in enumerate(pages[:100]): # Limit the nubmer of pages to avoid timeout.
         embeddings_data = embeddings.embed_query(page.page_content)
         # Filtering data
         cc = page.page_content.encode("utf-8").replace(b'\x00', b'').decode("utf-8")
         await insert_doc(name, cc, page.metadata, embeddings_data)
+        print("{}: processed chunk {} of {}".format(name, c, min([len(pages)-1, 99])))
         
+    print("Successfully registered: {}".format(name))
     return ("Registered a doc in Cloud SQL", 200)
 
 
