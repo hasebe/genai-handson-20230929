@@ -438,7 +438,7 @@ gcloud sql users create docs-admin \
   --password=handson
 ```
 
-### **3. データベースに接続**
+### **4. データベースに接続**
 
 ```bash
 gcloud sql connect pg15-pgvector-demo --user=docs-admin --database=docs
@@ -448,16 +448,19 @@ gcloud sql connect pg15-pgvector-demo --user=docs-admin --database=docs
 
 データベースに接続するとプロンプトの表示が変わります。
 
-### **4. ベクトル検索用拡張機能の追加**
+### **5. ベクトル検索用拡張機能の追加**
 
-```bash
-CREATE EXTENSION IF NOT EXISTS
-    vector;
+**注**: 以下のコマンドはコピー&ペーストで実行してください。
+
+```shell
+CREATE EXTENSION IF NOT EXISTS vector;
 ```
 
-### **5. Embedding データ用テーブルの作成**
+### **6. Embedding データ用テーブルの作成**
 
-```bash
+**注**: 以下のコマンドはコピー&ペーストで実行してください。
+
+```shell
 CREATE TABLE docs_embeddings(
   product_id VARCHAR(1024) NOT NULL,
   content TEXT,
@@ -465,7 +468,7 @@ CREATE TABLE docs_embeddings(
   embedding vector(768));
 ```
 
-### **6. データベースから切断**
+### **7. データベースから切断**
 
 ```bash
 exit
